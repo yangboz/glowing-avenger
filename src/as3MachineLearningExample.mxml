@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="955" minHeight="600"
+			   creationComplete="application_creationCompleteHandler(event)"
+			   >
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			/**
+			 * @see https://code.google.com/p/as3learning/source/browse/trunk/src/Main.as
+			 */
+			
+			/**
+			 * Demo/test harness for machine learning suite
+			 * contains genetic algorithm framework and markov chain implementation
+			 */
+			
+			import com.suckatmath.machinelearning.genetic.core.EvolvableFactory;
+			import com.suckatmath.machinelearning.genetic.core.GeneticEngine;
+			import com.suckatmath.machinelearning.genetic.impl.ArrayGenome;
+			import com.suckatmath.machinelearning.genetic.impl.BinaryTreeGenome;
+			import com.suckatmath.machinelearning.genetic.impl.FixedLengthStringGene;
+			import com.suckatmath.machinelearning.genetic.impl.FixedLengthStringGenome;
+			import com.suckatmath.machinelearning.genetic.impl.EvolvableStringFactory;
+			import com.suckatmath.machinelearning.markov.MarkovChain;
+			import flash.display.Sprite;
+			
+			protected function application_creationCompleteHandler(event:FlexEvent):void
+			{
+				//testFLSGenome();
+				//testArrayGenome();
+				//testBinaryTreeGenome();
+				testEngine();
+				//testMarkov();
+			}
+			
+			public function testFLSGenome():void {
+				trace("test FixedLengthStringGenome");
+				var fls:FixedLengthStringGenome = new FixedLengthStringGenome(10);
+				trace("new fls is: " + fls);
+				var mutated:FixedLengthStringGenome = fls.mutate(0.5) as FixedLengthStringGenome;
+				trace("mutated is (p=0.5): " + mutated);
+				var parents:Array = new Array();
+				parents.push(mutated);
+				var kid:FixedLengthStringGenome = fls.crossover(parents, 2) as FixedLengthStringGenome;
+				trace("kid is: " + kid);
+			}
+			
+			public function testArrayGenome():void {
+				trace("test ArrayGenome with FixedLengthStringGenome");
+				var ag:ArrayGenome = new ArrayGenome();
+				ag.setLength(5);
+				ag.setExampleGene(new FixedLengthStringGene(3, "abcdefghijklmnopqrstuvwxyz"));
+				var ag2:ArrayGenome = ag.newRandom() as ArrayGenome;
+				trace("new ArrayGenome: " + ag2);
+				var mutated:ArrayGenome = ag2.mutate(0.5) as ArrayGenome;
+				trace("mutated (p=0.5) is: " + mutated);
+				var ps:Array = new Array();
+				for (var i:int = 0; i < 5; i++ ) {
+					ps[i] = ag.newRandom();
+				}
+				var kid:ArrayGenome = ag2.crossover(ps, 2) as ArrayGenome;
+				trace("parents: " + ps);
+				trace("kid: " + kid);
+			}
+			
+			public function testBinaryTreeGenome():void {
+				trace("test BinaryTreeGenome");
+				var bt:BinaryTreeGenome = new BinaryTreeGenome();
+				bt.setRandomNodeLimit(10);
+				bt.gene = new FixedLengthStringGene(3, "abcdefghijklmnopqrstuvwxyz");
+				var bt2:BinaryTreeGenome = bt.newRandom() as BinaryTreeGenome;
+				trace("new BinaryTreeGenome: " + bt2);
+				var mutated:BinaryTreeGenome = bt2.mutate(0.5) as BinaryTreeGenome;
+				trace("mutated (p=0.5) is: " + mutated);
+				var bt3:BinaryTreeGenome = bt.newRandom() as BinaryTreeGenome;
+				var ps:Array = new Array();
+				ps.push(bt3);
+				ps.push(bt2);
+				trace("parents: " + ps);
+				var kid:BinaryTreeGenome = bt2.crossover(ps, 2) as BinaryTreeGenome;
+				trace("kid: " + kid);
+			}
+			
+			public function testEngine():void {
+				var factory:EvolvableStringFactory = new EvolvableStringFactory();
+				
+				var engine:GeneticEngine = new GeneticEngine(factory);
+				engine.randomPopulation(20);
+				engine.setCrossoverNumPoints(1);
+				//engine.setCarryOverNum(1);
+				engine.setSelectionMode(GeneticEngine.TOURNAMENT);
+				trace("initial population: avgFitness:" +engine.getAvgPopFitness() + "\n" + engine.getPopulation().join("\n"));
+				var i:int = 0;
+				for (i = 0; i < 2501; i++)
+				{
+					engine.nextGeneration();
+					trace("generation " + i +": avgFitness:" +engine.getAvgPopFitness());
+					if (i % 20 == 0)
+					{
+						trace(engine.getPopulation().join("\n"));
+						//trace("generation " + i +": avgFitness:" +engine.getAvgPopFitness());
+					}
+				}
+			}
+			
+			public function testMarkov():void
+			{
+				var mchain:MarkovChain = new MarkovChain(3, "It was the best of times it was the worst of times".split(""));
+				trace("generated text: " + mchain.generateSequence().join(""));
+				trace("probability of 'timmy' (should be 0):" + mchain.evaluateProb("timmy".split("")));
+				trace("probability of 'time' :" + mchain.evaluateProb("time".split("")));
+				trace("probability of 'was the b' :" + mchain.evaluateProb("was the b".split("")));
+				trace("score of 'was the b' :" + mchain.score("was the b".split("")));
+				
+				var mchain2:MarkovChain = new MarkovChain(1, [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7, 6, 2, 6]);
+				trace("generated int sequence: " + mchain2.generateSequence());
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+</s:Application>

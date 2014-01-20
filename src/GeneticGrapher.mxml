@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+			   xmlns:s="library://ns.adobe.com/flex/spark"
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   minWidth="955" minHeight="600"
+			   creationComplete="application_creationCompleteHandler(event)">
+	<fx:Script>
+		<![CDATA[
+			import com.suckatmath.machinelearning.genetic.core.GeneticEngine;
+			import com.suckatmath.machinelearning.genetic.impl.EvolvableStringFactory;
+			
+			import flash.display.Sprite;
+			import flash.events.Event;
+			import flash.events.MouseEvent;
+			import flash.events.TextEvent;
+			import flash.text.TextField;
+			import flash.text.TextFieldAutoSize;
+			
+			import mx.core.UIComponent;
+			import mx.events.FlexEvent;
+			
+			import spark.core.SpriteVisualElement;
+			
+			private var avgFitnesses:Array;
+			private var maxAvgFit:Number;
+			private var factory:EvolvableStringFactory;
+			private var engine:GeneticEngine;
+			private var btn:Sprite;
+			private var graphContainer:Sprite;
+			private var lastAvgBox:TextField;
+			private var popBox:TextField;
+			private var generationBox:TextField;
+			private var genTotal:int;
+			private var generationGap:int;
+			/**
+			 * Example app to demonstrate genetic algorithms
+			 * @author srs
+			 */
+			protected function application_creationCompleteHandler(event:FlexEvent):void
+			{
+				avgFitnesses = new Array();
+				maxAvgFit = 0;
+				generationGap = 50;
+				factory = new EvolvableStringFactory();
+				engine = new GeneticEngine(factory);
+				engine.randomPopulation(20);
+				engine.setCrossoverNumPoints(1);
+				//ROULETTE settings
+				engine.setNumNewPerGeneration(1);
+				engine.setCarryOverNum(1); 
+				engine.setSelectionMode(GeneticEngine.ROULETTE);
+				//TOURNAMENT settings
+				/*
+				engine.setNumNewPerGeneration(0);
+				engine.setSelectionMode(GeneticEngine.TOURNAMENT);
+				*/
+				//
+				graphContainer = new Sprite();
+				//@see:http://stackoverflow.com/questions/6493564/flex-4-5-1-add-a-simple-bitmap-or-sprite-on-new-application
+//				addChild(graphContainer);
+				spriteContainer.addChild(graphContainer);
+				
+				graphContainer.x = 0;
+				graphContainer.y = 0;
+				
+				btn = new Sprite();
+				btn.addEventListener(MouseEvent.CLICK, clickNext);
+				btn.useHandCursor = true;
+				btn.mouseChildren = false;
+				var nextGenLabel:TextField = new TextField();
+				nextGenLabel.autoSize = TextFieldAutoSize.LEFT;
+				nextGenLabel.background = true;
+				nextGenLabel.backgroundColor = 0xdddddd;
+				nextGenLabel.text = "Next " + generationGap + " generations";
+				nextGenLabel.mouseEnabled = false;
+				btn.addChild(nextGenLabel);
+//				addChild(btn);
+				spriteContainer.addChild(btn);
+				
+				addEventListener(Event.ADDED_TO_STAGE, initStage);
+				
+				lastAvgBox = new TextField();
+				lastAvgBox.x = 0;
+				lastAvgBox.y = 0;
+				lastAvgBox.width = 300;
+				lastAvgBox.height = 30;
+//				addChild(lastAvgBox);
+				spriteContainer.addChild(lastAvgBox);
+				
+				popBox = new TextField();
+				popBox.multiline = true;
+				popBox.x = 0;
+				popBox.y = lastAvgBox.height + 5;
+				popBox.autoSize = TextFieldAutoSize.LEFT
+//				addChild(popBox);
+				spriteContainer.addChild(popBox);
+				
+				generationBox = new TextField();
+				generationBox.text = "Generation: ";
+//				addChild(generationBox);
+				spriteContainer.addChild(generationBox);
+				
+				genTotal = 0;
+				
+				//
+				this.addElement(spriteContainer);
+			}
+			public function initStage(event:Event):void
+			{
+				btn.x = stage.stageWidth - 300;
+				btn.y = stage.stageHeight - 100;
+				
+				generationBox.x = stage.stageWidth - 300;
+				generationBox.y = stage.stageHeight - 50;
+			}
+			
+			public function clickNext(event:MouseEvent):void
+			{
+				doSteps(generationGap);
+				refreshGraph();
+			}
+			
+			public function doSteps(numGenerations:int):void {
+				var i:int = 0;
+				var af:Number;
+				for (i = 0; i < numGenerations; i++)
+				{
+					engine.nextGeneration();
+					af = engine.getAvgPopFitness();
+					lastAvgBox.text = "Last avg fitness: " + af;
+					popBox.text = "population:\n" + engine.getPopulation().join("\n");
+					avgFitnesses.push(af);
+					if (af > maxAvgFit)
+					{
+						maxAvgFit = af;
+					}
+				}
+				genTotal += numGenerations;
+				generationBox.text = "Generation: " + genTotal;
+			}
+			
+			/**
+			 * clear graph and redraw based on avgFitnesses and maxAvgFit
+			 */
+			public function refreshGraph():void
+			{
+				graphContainer.graphics.clear();
+				graphContainer.graphics.lineStyle(0.1);
+				var scaleFactor:Number = stage.stageHeight / maxAvgFit;
+				var xpos:Number = 0;
+				var xstep:Number = stage.stageWidth / avgFitnesses.length;
+				graphContainer.graphics.moveTo(0, stage.stageHeight);
+				for (var i:int = 0; i < avgFitnesses.length; i++)
+				{
+					graphContainer.graphics.lineTo(xpos, stage.stageHeight - avgFitnesses[i] * scaleFactor);
+					xpos += xstep;
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	<s:SpriteVisualElement id="spriteContainer" width="400" height="400" />
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+</s:Application>
