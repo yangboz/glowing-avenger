@@ -253,8 +253,8 @@
 				var buffer:Vector.<ga_struct> = new Vector.<ga_struct>();
 				//
 				this.init_population(pop_alpha,pop_beta);
-				population = pop_alpha;
-				buffer = pop_beta;
+				population = pop_alpha.concat();
+				buffer = pop_beta.concat();
 				//
 				for (var i:int=0; i<GA_MAXITER; i++) {
 					calc_fitness(population);		// calculate fitness
