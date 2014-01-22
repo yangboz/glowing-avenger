@@ -18,6 +18,7 @@
   <applications>
     <application path="as3MachineLearningExample.mxml"/>
     <application path="GeneticGrapher.mxml"/>
+    <application path="GA_HelloWorld.mxml"/>
   </applications>
   <modules/>
   <workers/>

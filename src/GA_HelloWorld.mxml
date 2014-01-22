@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" 
+			   minWidth="955" minHeight="600"
+			   creationComplete="main(event)"
+			   >
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			/**
+			 *@see:http://www.generation5.org/content/2003/data/gahelloworld.cpp
+			 */
+				
+//			#define GA_POPSIZE		2048		// ga population size
+			internal static const GA_POPSIZE:int = 2048;
+//			#define GA_MAXITER		16384		// maximum iterations
+			internal static const GA_MAXITER:int = 16384;
+//			#define GA_ELITRATE		0.10f		// elitism rate
+			internal static const GA_ELITRATE:Number = 0.1;
+//			#define GA_MUTATIONRATE	0.25f		// mutation rate
+			internal static const GA_MUTATIONRATE:Number = 0.1;
+//			#define GA_MUTATION		RAND_MAX * GA_MUTATIONRATE
+			internal static const GA_MUTATION:Number = Math.random()*GA_MUTATIONRATE;
+//			#define GA_TARGET		std::string("Hello world!")
+			internal static const GA_TARGET:String = "Hello world!";
+			
+//			using namespace std;				// polluting global namespace, but hey...
+//			
+//			struct ga_struct 
+//			{
+//				string str;						// the string
+//				unsigned int fitness;			// its fitness
+//			};
+//			private var ga_struct:Object = {"str":String,"fitness":int};
+//			internal class ga_struct extends Object{
+//				public var str:String;
+//				public var fitness:int;
+//			}
+//			
+//			typedef vector<ga_struct> ga_vector;// for brevity
+			private var ga_vector:Vector.<ga_struct> = new Vector.<ga_struct>(false);//None fixed size for Vector.
+//
+			
+//			void init_population(ga_vector &population,
+//				ga_vector &buffer ) 
+//			{
+//				int tsize = GA_TARGET.size();
+//				
+//				for (int i=0; i<GA_POPSIZE; i++) {
+//					ga_struct citizen;
+//					
+//					citizen.fitness = 0;
+//					citizen.str.erase();
+//					
+//					for (int j=0; j<tsize; j++)
+//						citizen.str += (rand() % 90) + 32;
+//					
+//					population.push_back(citizen);
+//				}
+//				
+//				buffer.resize(GA_POPSIZE);
+//			}
+			private function init_population(population:Vector.<ga_struct>,buffer:Vector.<ga_struct> ):void
+			{
+				var tsize:int = GA_TARGET.length;
+				for(var i:int=0;i<GA_POPSIZE;i++)
+				{
+					var citizen:ga_struct = new ga_struct();
+					citizen.fitness = 0;
+					citizen.str = "";//@see c++,str->erase()
+					
+					for(var j:int=0;j<tsize;j++)
+					{
+						citizen.str += (Math.random() % 90) +32;
+					}
+					population.push(citizen);
+				}
+				buffer.length = GA_POPSIZE;
+			}
+			
+//			void calc_fitness(ga_vector &population)
+//			{
+//				string target = GA_TARGET;
+//				int tsize = target.size();
+//				unsigned int fitness;
+//				
+//				for (int i=0; i<GA_POPSIZE; i++) {
+//					fitness = 0;
+//					for (int j=0; j<tsize; j++) {
+//						fitness += abs(int(population[i].str[j] - target[j]));
+//					}
+//					
+//					population[i].fitness = fitness;
+//				}
+//			}
+			private function calc_fitness(population:Vector.<ga_struct>):void
+			{
+				var target:String = GA_TARGET;
+				var tsize:int = target.length;
+				var fitness:int;
+				
+				for(var i:int=0;i<GA_POPSIZE;i++)
+				{
+					fitness = 0;
+					for(var j:int = 0;j<tsize;j++)
+					{
+						fitness += Math.abs(int(population[i].str.charCodeAt(j)-target.charCodeAt(j)));
+					}
+					population[i].fitness = fitness;
+				}
+			}
+			
+//			bool fitness_sort(ga_struct x, ga_struct y) 
+//			{ return (x.fitness < y.fitness); }
+			private function fitness_sort(x:ga_struct,y:ga_struct):Boolean
+			{
+				return (x.fitness < y.fitness);
+			}
+			
+//			inline void sort_by_fitness(ga_vector &population)
+//			{ sort(population.begin(), population.end(), fitness_sort); }
+			internal function sort_by_fitness(population:Vector.<ga_struct>):void
+			{
+				var population_new:Vector.<ga_struct> = new Vector.<ga_struct>();
+				population_new.push(population[0],population[population.length-1]);
+				population_new.sort(fitness_sort);
+			}
+			
+//			void elitism(ga_vector &population, 
+//				ga_vector &buffer, int esize )
+//			{
+//				for (int i=0; i<esize; i++) {
+//					buffer[i].str = population[i].str;
+//					buffer[i].fitness = population[i].fitness;
+//				}
+//			}
+			private function elitism(population:Vector.<ga_struct>,buffer:Vector.<ga_struct>,esize:int):void
+			{
+				for(var i:int=0;i<esize;i++)
+				{
+					buffer[i].str = population[i].str;
+					buffer[i].fitness = population[i].fitness;
+				}
+			}
+			
+//			void mutate(ga_struct &member)
+//			{
+//				int tsize = GA_TARGET.size();
+//				int ipos = rand() % tsize;
+//				int delta = (rand() % 90) + 32; 
+//				
+//				member.str[ipos] = ((member.str[ipos] + delta) % 122);
+//			}
+			private function setCharAt(str:String, char:String,index:int):String {
+				return str.substr(0,index) + char + str.substr(index + 1);
+			}
+			private function mutate(member:ga_struct):void
+			{
+				var tsize:int = GA_TARGET.length;
+				var ipos:int = Math.random() % tsize;
+				var delta:int = (Math.random() % 90)+32;
+				
+//				member.str.charAt(ipos) = ((member.str.charAt(ipos) + delta) % 122);
+				member.str = setCharAt(member.str,String((member.str.charCodeAt(ipos) + delta) % 122),ipos);
+			}
+			
+//			void mate(ga_vector &population, ga_vector &buffer)
+//			{
+//				int esize = GA_POPSIZE * GA_ELITRATE;
+//				int tsize = GA_TARGET.size(), spos, i1, i2;
+//				
+//				elitism(population, buffer, esize);
+//				
+//				// Mate the rest
+//				for (int i=esize; i<GA_POPSIZE; i++) {
+//					i1 = rand() % (GA_POPSIZE / 2);
+//					i2 = rand() % (GA_POPSIZE / 2);
+//					spos = rand() % tsize;
+//					
+//					buffer[i].str = population[i1].str.substr(0, spos) + 
+//						population[i2].str.substr(spos, esize - spos);
+//					
+//					if (rand() < GA_MUTATION) mutate(buffer[i]);
+//				}
+//			}
+			private function mate(population:Vector.<ga_struct>,buffer:Vector.<ga_struct>):void
+			{
+				var esize:int = GA_POPSIZE * GA_ELITRATE;
+				var tsize:int = GA_TARGET.length;var spos:int;var i1:int;var i2:int;
+				
+				this.elitism(population,buffer,esize);
+				// Mate the rest
+				for(var i:int=esize;i<GA_POPSIZE;i++)
+				{
+					i1 = Math.random() % (GA_POPSIZE / 2);
+					i2 = Math.random() % (GA_POPSIZE / 2);
+					spos = Math.random() % tsize;
+					
+					buffer[i].str = population[i1].str.substr(0,spos) +
+						population[i2].str.substr(spos,esize - spos);
+					
+					if( Math.random() < GA_MUTATION) this.mutate(buffer[i]);
+				}
+			}
+			
+//			inline void print_best(ga_vector &gav)
+//			{ cout << "Best: " << gav[0].str << " (" << gav[0].fitness << ")" << endl; }
+			internal function print_best(gav:Vector.<ga_struct>):void
+			{
+				trace("Best: ",gav[0].str," (",gav[0].fitness,")");
+			}
+			
+//			inline void swap(ga_vector *&population,
+//				ga_vector *&buffer)
+//			{ ga_vector *temp = population; population = buffer; buffer = temp; }
+			internal function swap(population:Vector.<ga_struct>,buffer:Vector.<ga_struct>):void
+			{
+				var temp:Vector.<ga_struct> = population;population = buffer;buffer = temp;
+			}
+			
+//			int main()
+//			{
+//				srand(unsigned(time(NULL)));
+//				
+//				ga_vector pop_alpha, pop_beta;
+//				ga_vector *population, *buffer;
+//				
+//				init_population(pop_alpha, pop_beta);
+//				population = &pop_alpha;
+//				buffer = &pop_beta;
+//				
+//				for (int i=0; i<GA_MAXITER; i++) {
+//					calc_fitness(*population);		// calculate fitness
+//					sort_by_fitness(*population);	// sort them
+//					print_best(*population);		// print the best one
+//					
+//					if ((*population)[0].fitness == 0) break;
+//					
+//					mate(*population, *buffer);		// mate the population together
+//					swap(population, buffer);		// swap buffers
+//				}
+//				
+//				return 0;
+//			}
+			//
+			protected function main(event:FlexEvent):void
+			{
+				var pop_alpha:Vector.<ga_struct> = new Vector.<ga_struct>();
+				var pop_beta:Vector.<ga_struct> = new Vector.<ga_struct>();
+				var population:Vector.<ga_struct> = new Vector.<ga_struct>();
+				var buffer:Vector.<ga_struct> = new Vector.<ga_struct>();
+				//
+				this.init_population(pop_alpha,pop_beta);
+				population = pop_alpha;
+				buffer = pop_beta;
+				//
+				for (var i:int=0; i<GA_MAXITER; i++) {
+					calc_fitness(population);		// calculate fitness
+					sort_by_fitness(population);	// sort them
+					print_best(population);		// print the best one
+					
+					if (population[0].fitness == 0) break;
+					
+					mate(population, buffer);		// mate the population together
+					swap(population, buffer);		// swap buffers
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+</s:Application>

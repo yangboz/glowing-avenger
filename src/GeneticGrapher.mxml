@@ -12,11 +12,9 @@
 			import flash.display.Sprite;
 			import flash.events.Event;
 			import flash.events.MouseEvent;
-			import flash.events.TextEvent;
 			import flash.text.TextField;
 			import flash.text.TextFieldAutoSize;
 			
-			import mx.core.UIComponent;
 			import mx.events.FlexEvent;
 			
 			import spark.core.SpriteVisualElement;
@@ -46,14 +44,21 @@
 				engine.randomPopulation(20);
 				engine.setCrossoverNumPoints(1);
 				//ROULETTE settings
+				/*
 				engine.setNumNewPerGeneration(1);
 				engine.setCarryOverNum(1); 
 				engine.setSelectionMode(GeneticEngine.ROULETTE);
+				*/
 				//TOURNAMENT settings
 				/*
 				engine.setNumNewPerGeneration(0);
 				engine.setSelectionMode(GeneticEngine.TOURNAMENT);
 				*/
+				//ELITE settings
+				///*
+				engine.setNumNewPerGeneration(0);
+				engine.setSelectionMode(GeneticEngine.ELITE);
+				//*/
 				//
 				graphContainer = new Sprite();
 				//@see:http://stackoverflow.com/questions/6493564/flex-4-5-1-add-a-simple-bitmap-or-sprite-on-new-application
