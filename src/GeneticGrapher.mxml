@@ -36,6 +36,7 @@
 			 */
 			protected function application_creationCompleteHandler(event:FlexEvent):void
 			{
+				//
 				avgFitnesses = new Array();
 				maxAvgFit = 0;
 				generationGap = 50;

@@ -17,7 +17,6 @@
 			 * contains genetic algorithm framework and markov chain implementation
 			 */
 			
-			import com.suckatmath.machinelearning.genetic.core.EvolvableFactory;
 			import com.suckatmath.machinelearning.genetic.core.GeneticEngine;
 			import com.suckatmath.machinelearning.genetic.impl.ArrayGenome;
 			import com.suckatmath.machinelearning.genetic.impl.BinaryTreeGenome;
@@ -25,15 +24,14 @@
 			import com.suckatmath.machinelearning.genetic.impl.FixedLengthStringGenome;
 			import com.suckatmath.machinelearning.genetic.impl.EvolvableStringFactory;
 			import com.suckatmath.machinelearning.markov.MarkovChain;
-			import flash.display.Sprite;
 			
 			protected function application_creationCompleteHandler(event:FlexEvent):void
 			{
-				//testFLSGenome();
-				//testArrayGenome();
-				//testBinaryTreeGenome();
+//				testFLSGenome();
+//				testArrayGenome();
+//				testBinaryTreeGenome();
 				testEngine();
-				//testMarkov();
+//				testMarkov();
 			}
 			
 			public function testFLSGenome():void {
@@ -91,7 +89,9 @@
 				engine.randomPopulation(20);
 				engine.setCrossoverNumPoints(1);
 				//engine.setCarryOverNum(1);
-				engine.setSelectionMode(GeneticEngine.TOURNAMENT);
+//				engine.setSelectionMode(GeneticEngine.TOURNAMENT);
+//				engine.setSelectionMode(GeneticEngine.ROULETTE);
+				engine.setSelectionMode(GeneticEngine.ELITE);
 				trace("initial population: avgFitness:" +engine.getAvgPopFitness() + "\n" + engine.getPopulation().join("\n"));
 				var i:int = 0;
 				for (i = 0; i < 2501; i++)
